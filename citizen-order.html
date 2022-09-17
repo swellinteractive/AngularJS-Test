@@ -1,0 +1,129 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.3.14/angular.min.js"></script>
+  </head>
+  <style>
+    .box {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .person-img {
+      max-height: 120px;
+      max-width: 100%;
+    }
+    .rounded-box { 
+      height: 8rem;
+      width: 12rem;
+      float: left;
+      margin: 0.75rem;
+      position: relative;
+    }
+    .rounded-box:hover .box-tip {
+      opacity: 1;
+      color: #fff;
+    }
+    .rounded-box:hover .box-tip{
+      background: rgba(0,0,0,0.7);
+    }
+    .box-tip {
+      position: absolute;
+      width: 100%;
+      text-align: center;
+      
+      top: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      height: 100%;
+      border-radius: 10px;
+    }
+    .img-wrapper {
+      border-radius: 10px;
+      border: 1.5px solid #000;        
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+  <body>
+    <div class="jumbotron text-center">
+      <h1>AngularJS Application</h1>
+      <p>Display logos in a certain order, based on an input JSON array.</p>
+    </div>
+    <div class="container" ng-app="logoList" ng-controller="listCtrl">
+      <div class="col-md-12 box">
+        <div
+          class="rounded-box"
+          ng-repeat="person in citizenList"
+        >
+          <div class="img-wrapper">
+            <img
+              src="{{ person.social_media_pages.picture }}"
+              class="person-img"
+              alt="{{person.name}}"
+            />
+          </div>
+          <h5 class="box-tip">{{person.source_items.id}}</h5>
+        </div>
+      </div>
+    </div>
+    <script>
+      const fetchUrl =
+        "https://ac.aws.citizennet.com/assets/qspreviews/qs_interview_data.json";
+      const app = angular.module("logoList", []);
+      app.controller("listCtrl", function ($scope, $http) {
+        const req = {
+          url: fetchUrl,
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          dataType: "json",
+        };
+
+        $scope.jsonList = new Array();
+
+        $http(req)
+          .success(function (jsonData) {
+            $scope.jsonList = jsonData.data;
+            $scope.citizenList = orderFunc("audience_size", jsonData.data);
+          })
+          .error(function () {
+            $scope.jsonList = [];
+          });
+      });
+
+      function orderFunc(orderIndex, list) {
+        if (!list || list.length === 0) return [];
+        list.sort((a, b) =>
+          b[orderIndex] > a[orderIndex]
+            ? 1
+            : b[orderIndex] < a[orderIndex]
+            ? -1
+            : 0
+        );
+        list.sort((a, b) =>
+          b.source_items[orderIndex] > a.source_items[orderIndex]
+            ? 1
+            : b.source_items[orderIndex] < a.source_items[orderIndex]
+            ? -1
+            : 0
+        );
+        return list;
+      }
+    </script>
+  </body>
+</html>
